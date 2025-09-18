@@ -1,0 +1,24 @@
+{
+  "name": "oceanic-discord-bot",
+  "version": "1.0.0",
+  "description": "Discord bot with user install support using Oceanic.js",
+  "main": "dist/init.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/init.js",
+    "dev": "ts-node src/init.ts",
+    "watch": "tsc --watch"
+  },
+  "dependencies": {
+    "oceanic.js": "^1.10.2",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "typescript": "^5.2.2",
+    "ts-node": "^10.9.1"
+  },
+  "keywords": ["discord", "bot", "oceanic", "typescript"],
+  "author": "Your Name",
+  "license": "MIT"
+}

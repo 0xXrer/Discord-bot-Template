@@ -1,57 +1,95 @@
-# Documentation
+# Discord Bot Template Documentation
 
-Welcome to the Discord bot documentation. This is a modern Discord bot built with TypeScript and Oceanic.js, featuring user-installable commands and a robust architecture.
+Welcome to the comprehensive documentation for the **Discord Bot Template v2.0** - a modern, production-ready Discord bot framework built with TypeScript, Oceanic.js, decorators, and dependency injection.
 
-## Table of Contents
+## 📚 Documentation Index
 
-- [Getting Started](./getting-started.md)
-- [API Reference](./api/README.md)
-- [Command Development](./guides/command-development.md)
-- [Event Development](./guides/event-development.md)
-- [Configuration](./guides/configuration.md)
-- [Deployment](./guides/deployment.md)
-- [Examples](./examples/README.md)
+### Getting Started
+- **[Quick Start Guide](./getting-started.md)** - Get up and running in minutes
+- **[Installation](./getting-started.md#installation)** - Detailed installation instructions
+- **[Configuration](./getting-started.md#configuration)** - Environment setup and configuration
 
-## Quick Start
+### Core Concepts
+- **[Architecture Overview](./architecture.md)** - Understanding the bot's architecture
+- **[Dependency Injection](./architecture.md#dependency-injection)** - How DI works in this template
+- **[Decorators](./architecture.md#decorators)** - Using decorators for commands and events
+- **[Module System](./architecture.md#module-system)** - Creating and organizing modules
 
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Copy `exemple.env` to `.env` and configure your bot token
-4. Build the project: `npm run build`
-5. Start the bot: `npm start`
+### Development Guides
+- **[Creating Commands](./guides/creating-commands.md)** - Build custom slash commands
+- **[Creating Events](./guides/creating-events.md)** - Handle Discord events
+- **[Creating Modules](./guides/creating-modules.md)** - Organize features into modules
+- **[Middleware](./guides/middleware.md)** - Using and creating middleware
+- **[Database Integration](./guides/database.md)** - Working with Prisma and PostgreSQL
+- **[Error Handling](./guides/error-handling.md)** - Proper error handling patterns
 
-## Features
+### API Reference
+- **[ExtendedClient](./api/extended-client.md)** - The main bot client
+- **[BaseCommand](./api/base-command.md)** - Command base class
+- **[BaseEvent](./api/base-event.md)** - Event base class
+- **[BaseModule](./api/base-module.md)** - Module base class
+- **[Decorators API](./api/decorators.md)** - All available decorators
+- **[Builders](./api/builders.md)** - Embed and component builders
+- **[Logger](./api/logger.md)** - Logging system
+- **[Config](./api/config.md)** - Configuration management
 
-- 🚀 **Modern Architecture**: Built with TypeScript and Oceanic.js
-- 📱 **User Installable Commands**: Commands work in DMs and as user apps
-- 🔧 **Modular Design**: Easy to extend with new commands and events
-- 🛡️ **Permission System**: Flexible permission management
-- 📝 **Comprehensive Logging**: Built-in logging system
-- ⚡ **Hot Reload**: Development-friendly with TypeScript compilation
+### Deployment & Production
+- **[Deployment Guide](./deployment.md)** - Deploy your bot to production
+- **[Docker Deployment](./deployment.md#docker)** - Using Docker and Docker Compose
+- **[Monitoring](./deployment.md#monitoring)** - Health checks and metrics
+- **[CI/CD](./deployment.md#cicd)** - Automated testing and deployment
 
-## Project Structure
+### Additional Resources
+- **[Testing Guide](./testing.md)** - Writing and running tests
+- **[Troubleshooting](./troubleshooting.md)** - Common issues and solutions
+- **[Best Practices](./best-practices.md)** - Code quality and patterns
+- **[Examples](./examples/)** - Code examples and use cases
+- **[FAQ](./faq.md)** - Frequently asked questions
 
-```
-src/
-├── client/          # Bot client and core functionality
-├── commands/        # Slash commands
-├── events/          # Discord events
-├── handlers/        # Command and event handlers
-├── managers/        # Permission and other managers
-├── utils/           # Utility functions
-└── config/          # Configuration management
-```
+## 🚀 Quick Links
 
-## Available Commands
+### For Beginners
+1. Start with the [Quick Start Guide](./getting-started.md)
+2. Learn about [Creating Commands](./guides/creating-commands.md)
+3. Understand [Decorators](./architecture.md#decorators)
+4. Explore the [Examples](./examples/)
 
-- `/ping` - Check bot latency
-- `/help` - Get help with commands
-- `/userinfo` - Get user information
+### For Advanced Users
+1. Deep dive into [Architecture](./architecture.md)
+2. Learn about [Dependency Injection](./architecture.md#dependency-injection)
+3. Create custom [Middleware](./guides/middleware.md)
+4. Set up [Database Integration](./guides/database.md)
+5. Configure [Monitoring](./deployment.md#monitoring)
 
-## Contributing
+## 📖 What's New in v2.0
 
-See [Command Development Guide](./guides/command-development.md) for information on adding new commands.
+This template has been completely rewritten from the ground up with modern patterns:
 
-## License
+- **Decorator-Based Architecture** - Use `@Command`, `@Event`, and other decorators
+- **Dependency Injection** - Built-in DI container with tsyringe
+- **Modular Design** - Organize features into self-contained modules
+- **Type Safety** - Full TypeScript with strict mode
+- **Database Integration** - Prisma ORM with migrations
+- **Monitoring** - Health checks, metrics, and logging
+- **Testing** - Comprehensive test suite with Jest
+- **Production Ready** - Docker support, CI/CD pipelines
 
-MIT License - see LICENSE file for details.
+## 🤔 Need Help?
+
+- **Issues**: [GitHub Issues](https://github.com/0xXrer/Discord-bot-Template/issues)
+- **Discord API**: [Oceanic.js Documentation](https://docs.oceanic.ws/)
+- **TypeScript**: [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+
+## 📝 Contributing to Documentation
+
+Found an error or want to improve the docs? Contributions are welcome!
+
+1. Fork the repository
+2. Make your changes in the `docs/` directory
+3. Submit a pull request
+
+---
+
+**Version**: 2.0.0
+**Last Updated**: November 2025
+**Maintained by**: [0xXrer](https://github.com/0xXrer)

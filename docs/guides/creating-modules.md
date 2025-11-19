@@ -1,393 +1,489 @@
 # Creating Modules Guide
 
-Modules are the primary way to organize and group related commands, events, and services in the Discord Bot Template v2.0.
+Learn how to organize your bot's features into modular, maintainable packages.
 
-## What is a Module?
+## What are Modules?
 
-A module is a self-contained unit that:
-- Groups related commands together
-- Manages event listeners
-- Handles initialization and shutdown logic
-- Can have its own services and dependencies
+Modules are self-contained packages of related functionality that group commands, events, and services together. They make your bot organized, testable, and easy to maintain.
 
-## Basic Module Structure
+## Module Structure
 
-```typescript
-import { injectable } from 'tsyringe';
-import { BaseModule } from '@core/base';
-import { ExtendedClient } from '@core/client';
-import { Container } from '@core/container';
-
-@injectable()
-export class MyModule extends BaseModule {
-  public name = 'MyModule';
-
-  constructor(client: ExtendedClient) {
-    super(client);
-  }
-
-  public async initialize(client: ExtendedClient): Promise<void> {
-    client.logger.info(`Initializing ${this.name} module...`);
-
-    // Load commands
-    const commands = [
-      Container.get(Command1),
-      Container.get(Command2),
-    ];
-
-    // Load events
-    const events = [
-      Container.get(Event1),
-      Container.get(Event2),
-    ];
-
-    // Register with client
-    commands.forEach((cmd) => client.registerCommand(cmd));
-    events.forEach((evt) => client.registerEvent(evt));
-
-    client.logger.info(`${this.name} module initialized`);
-  }
-
-  public async shutdown(): Promise<void> {
-    // Optional cleanup logic
-    this.client.logger.info(`${this.name} module shutting down...`);
-  }
-}
+```
+src/modules/mymodule/
+├── commands/
+│   ├── Command1.command.ts
+│   └── Command2.command.ts
+├── events/
+│   └── Event1.event.ts
+├── services/
+│   └── MyService.ts
+└── MyModule.module.ts
 ```
 
-## Creating a Complete Module
-
-Let's create a "Utility" module with some useful commands:
+## Creating a Module
 
 ### 1. Create Module Directory
 
-```
-src/modules/utility/
-├── commands/
-│   ├── AvatarCommand.ts
-│   ├── ServerInfoCommand.ts
-│   └── UptimeCommand.ts
-├── events/
-│   └── (optional)
-└── utility.module.ts
+```bash
+mkdir -p src/modules/mymodule/commands
+mkdir -p src/modules/mymodule/events
 ```
 
-### 2. Create Commands
+### 2. Create Module Class
 
-**AvatarCommand.ts:**
 ```typescript
-import { CommandInteraction } from 'oceanic.js';
-import { injectable } from 'tsyringe';
-import { BaseCommand } from '@core/base';
-import { Command, Cooldown } from '@core/decorators';
-import { ExtendedClient } from '@core/client';
-import { EmbedBuilder } from '@common/builders';
-
-@Command('avatar', 'Get a user\'s avatar')
-@Cooldown(3000)
-@injectable()
-export class AvatarCommand extends BaseCommand {
-  constructor(client: ExtendedClient) {
-    super(client);
-    this.metadata.options = [
-      {
-        type: 6, // USER
-        name: 'user',
-        description: 'The user to get avatar from',
-        required: false,
-      },
-    ];
-    this.metadata.userInstallable = true;
-    this.metadata.dmPermission = true;
-  }
-
-  public async execute(interaction: CommandInteraction): Promise<void> {
-    const targetUser = interaction.data.options.getUser('user') || interaction.user;
-
-    const embed = new EmbedBuilder()
-      .setTitle(`${targetUser.username}'s Avatar`)
-      .setImage(targetUser.avatarURL('png', 512))
-      .setColor('#5865F2')
-      .build();
-
-    await interaction.createMessage({ embeds: [embed] });
-  }
-}
-```
-
-**ServerInfoCommand.ts:**
-```typescript
-import { CommandInteraction } from 'oceanic.js';
-import { injectable } from 'tsyringe';
-import { BaseCommand } from '@core/base';
-import { Command, GuildOnly, Cooldown } from '@core/decorators';
-import { ExtendedClient } from '@core/client';
-import { EmbedBuilder } from '@common/builders';
-
-@Command('serverinfo', 'Get information about the server')
-@GuildOnly()
-@Cooldown(5000)
-@injectable()
-export class ServerInfoCommand extends BaseCommand {
-  constructor(client: ExtendedClient) {
-    super(client);
-  }
-
-  public async execute(interaction: CommandInteraction): Promise<void> {
-    const guild = interaction.guild;
-    if (!guild) return;
-
-    const embed = new EmbedBuilder()
-      .setTitle(guild.name)
-      .setThumbnail(guild.iconURL() || '')
-      .addField('Owner', `<@${guild.ownerID}>`, true)
-      .addField('Members', guild.memberCount.toString(), true)
-      .addField('Channels', guild.channels.size.toString(), true)
-      .addField('Roles', guild.roles.size.toString(), true)
-      .addField('Created', guild.createdAt.toISOString().split('T')[0], true)
-      .setColor('#5865F2')
-      .build();
-
-    await interaction.createMessage({ embeds: [embed] });
-  }
-}
-```
-
-**UptimeCommand.ts:**
-```typescript
-import { CommandInteraction } from 'oceanic.js';
-import { injectable } from 'tsyringe';
-import { BaseCommand } from '@core/base';
-import { Command, Cooldown } from '@core/decorators';
-import { ExtendedClient } from '@core/client';
-import { EmbedBuilder } from '@common/builders';
-
-@Command('uptime', 'Check how long the bot has been running')
-@Cooldown(5000)
-@injectable()
-export class UptimeCommand extends BaseCommand {
-  constructor(client: ExtendedClient) {
-    super(client);
-    this.metadata.userInstallable = true;
-    this.metadata.dmPermission = true;
-  }
-
-  public async execute(interaction: CommandInteraction): Promise<void> {
-    const uptime = this.formatUptime(process.uptime());
-
-    const embed = EmbedBuilder.info('Bot Uptime', `The bot has been running for **${uptime}**`)
-      .build();
-
-    await interaction.createMessage({ embeds: [embed] });
-  }
-
-  private formatUptime(seconds: number): string {
-    const days = Math.floor(seconds / 86400);
-    const hours = Math.floor((seconds % 86400) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
-
-    const parts: string[] = [];
-    if (days > 0) parts.push(`${days}d`);
-    if (hours > 0) parts.push(`${hours}h`);
-    if (minutes > 0) parts.push(`${minutes}m`);
-    if (secs > 0 || parts.length === 0) parts.push(`${secs}s`);
-
-    return parts.join(' ');
-  }
-}
-```
-
-### 3. Create Module File
-
-**utility.module.ts:**
-```typescript
-import { injectable } from 'tsyringe';
+// src/modules/mymodule/MyModule.module.ts
 import { BaseModule } from '@core/base';
 import { ExtendedClient } from '@core/client';
-import { Container } from '@core/container';
 
-import { AvatarCommand } from './commands/AvatarCommand';
-import { ServerInfoCommand } from './commands/ServerInfoCommand';
-import { UptimeCommand } from './commands/UptimeCommand';
+export class MyModule extends BaseModule {
+  public name = 'MyModule';
+  public description = 'Description of what this module does';
 
-@injectable()
-export class UtilityModule extends BaseModule {
-  public name = 'Utility';
+  async initialize(client: ExtendedClient): Promise<void> {
+    // Register commands
+    await this.registerCommands([
+      // Add your command classes here
+    ]);
 
-  constructor(client: ExtendedClient) {
-    super(client);
+    // Register events
+    await this.registerEvents([
+      // Add your event classes here
+    ]);
+
+    this.client.logger.info(`${this.name} initialized`);
   }
 
-  public async initialize(client: ExtendedClient): Promise<void> {
-    client.logger.info(`Initializing ${this.name} module...`);
-
-    const commands = [
-      Container.get(AvatarCommand),
-      Container.get(ServerInfoCommand),
-      Container.get(UptimeCommand),
-    ];
-
-    commands.forEach((command) => client.registerCommand(command));
-
-    client.logger.info(
-      `${this.name} module initialized with ${commands.length} commands`
-    );
-  }
-
-  public async shutdown(): Promise<void> {
-    this.client.logger.info(`${this.name} module shutting down...`);
-    // Cleanup logic here if needed
+  async shutdown(): Promise<void> {
+    // Clean up resources
+    this.client.logger.info(`${this.name} shut down`);
   }
 }
 ```
 
-### 4. Register Module in main.ts
-
-Update `src/main.ts` to include your new module:
+### 3. Register in Main
 
 ```typescript
-import { UtilityModule } from '@modules/utility/utility.module';
+// src/main.ts
+import { MyModule } from './modules/mymodule/MyModule.module';
 
-async function bootstrap(): Promise<void> {
-  // ... existing code ...
+async function bootstrap() {
+  const client = new ExtendedClient();
 
-  const utilityModule = container.resolve(UtilityModule);
-  await utilityModule.initialize(client);
-  client.registerModule(utilityModule);
+  // Register modules
+  client.registerModule(new GeneralModule(client));
+  client.registerModule(new ModerationModule(client));
+  client.registerModule(new MyModule(client));  // Add your module
 
-  // ... rest of code ...
+  await client.login(process.env.BOT_TOKEN);
 }
 ```
 
-## Module with Services
+## Complete Example: Economy Module
 
-Modules can have their own services:
+### Module Structure
+
+```
+src/modules/economy/
+├── commands/
+│   ├── Balance.command.ts
+│   ├── Daily.command.ts
+│   └── Transfer.command.ts
+├── events/
+│   └── MessageReward.event.ts
+├── services/
+│   └── EconomyService.ts
+└── Economy.module.ts
+```
+
+### EconomyService
 
 ```typescript
 // src/modules/economy/services/EconomyService.ts
-import { singleton } from 'tsyringe';
-import { DatabaseService } from '@database/database.service';
-import { Logger } from '@common/logger';
+import { singleton, inject } from 'tsyringe';
+import { DatabaseService } from '@database/DatabaseService';
 
 @singleton()
 export class EconomyService {
   constructor(
-    private database: DatabaseService,
-    private logger: Logger
+    @inject(DatabaseService) private db: DatabaseService
   ) {}
 
-  public async addMoney(userId: string, amount: number): Promise<void> {
-    // Implementation
+  async getBalance(userId: string): Promise<number> {
+    const user = await this.db.user.findUnique({
+      where: { id: userId }
+    });
+    return user?.balance ?? 0;
   }
 
-  public async getMoney(userId: string): Promise<number> {
-    // Implementation
-    return 0;
+  async addBalance(userId: string, amount: number): Promise<number> {
+    const user = await this.db.user.upsert({
+      where: { id: userId },
+      create: { id: userId, balance: amount },
+      update: { balance: { increment: amount } }
+    });
+    return user.balance;
+  }
+
+  async transfer(fromId: string, toId: string, amount: number): Promise<boolean> {
+    const from = await this.getBalance(fromId);
+    if (from < amount) return false;
+
+    await this.db.$transaction([
+      this.db.user.update({
+        where: { id: fromId },
+        data: { balance: { decrement: amount } }
+      }),
+      this.db.user.update({
+        where: { id: toId },
+        data: { balance: { increment: amount } }
+      })
+    ]);
+
+    return true;
   }
 }
+```
 
-// In module
-import { EconomyService } from './services/EconomyService';
+### Balance Command
 
-export class EconomyModule extends BaseModule {
+```typescript
+// src/modules/economy/commands/Balance.command.ts
+import { inject } from 'tsyringe';
+import { CommandInteraction, ApplicationCommandOptionTypes } from 'oceanic.js';
+import { BaseCommand } from '@core/base';
+import { Command, Option } from '@core/decorators';
+import { EconomyService } from '../services/EconomyService';
+import { EmbedBuilder } from '@common/builders';
+
+@Command('balance', 'Check your or someone elses balance')
+@Option({
+  name: 'user',
+  description: 'User to check balance of',
+  type: ApplicationCommandOptionTypes.USER,
+  required: false
+})
+export class BalanceCommand extends BaseCommand {
   constructor(
     client: ExtendedClient,
-    private economyService: EconomyService
+    @inject(EconomyService) private economyService: EconomyService
   ) {
     super(client);
   }
 
-  // ... rest of module
+  async execute(interaction: CommandInteraction): Promise<void> {
+    const user = interaction.data.options.getUser('user') ?? interaction.user;
+    const balance = await this.economyService.getBalance(user.id);
+
+    const embed = EmbedBuilder.info('Balance', '')
+      .setThumbnail(user.avatarURL())
+      .addField('User', user.tag, true)
+      .addField('Balance', `$${balance.toLocaleString()}`, true)
+      .build();
+
+    await interaction.createMessage({ embeds: [embed] });
+  }
 }
 ```
 
-## Module Configuration
-
-Modules can have their own configuration:
+### Daily Command
 
 ```typescript
-interface UtilityModuleConfig {
-  maxAvatarSize: number;
-  cacheEnabled: boolean;
-}
+// src/modules/economy/commands/Daily.command.ts
+import { inject } from 'tsyringe';
+import { CommandInteraction, MessageFlags } from 'oceanic.js';
+import { BaseCommand } from '@core/base';
+import { Command, Cooldown } from '@core/decorators';
+import { EconomyService } from '../services/EconomyService';
 
-export class UtilityModule extends BaseModule {
-  private config: UtilityModuleConfig;
+const ONE_DAY = 24 * 60 * 60 * 1000;
 
-  constructor(client: ExtendedClient) {
+@Command('daily', 'Claim your daily reward')
+@Cooldown(ONE_DAY)
+export class DailyCommand extends BaseCommand {
+  constructor(
+    client: ExtendedClient,
+    @inject(EconomyService) private economyService: EconomyService
+  ) {
     super(client);
-    this.config = {
-      maxAvatarSize: 512,
-      cacheEnabled: true,
-    };
   }
 
-  // Access config in commands via module reference
+  async execute(interaction: CommandInteraction): Promise<void> {
+    const reward = 1000;
+    const newBalance = await this.economyService.addBalance(
+      interaction.user.id,
+      reward
+    );
+
+    await interaction.createMessage({
+      content: `✅ You claimed your daily reward of $${reward}!\nNew balance: $${newBalance.toLocaleString()}`,
+      flags: MessageFlags.EPHEMERAL
+    });
+  }
 }
 ```
 
-## Best Practices
-
-1. **One module per feature** - Keep modules focused on a single feature set
-2. **Use dependency injection** - Makes modules testable
-3. **Implement shutdown** - Clean up resources properly
-4. **Group related commands** - Commands in a module should be related
-5. **Use services for business logic** - Keep commands thin, services thick
-6. **Handle errors** - Always wrap module initialization in try-catch
-7. **Log initialization** - Help with debugging
-8. **Make modules independent** - Modules should not depend on each other directly
-
-## Module Loading Order
-
-Modules are loaded in the order they're initialized in `main.ts`. If you have dependencies between modules, load them in the correct order:
+### Transfer Command
 
 ```typescript
-// Load core modules first
-const generalModule = container.resolve(GeneralModule);
-await generalModule.initialize(client);
+// src/modules/economy/commands/Transfer.command.ts
+import { inject } from 'tsyringe';
+import { CommandInteraction, ApplicationCommandOptionTypes, MessageFlags } from 'oceanic.js';
+import { BaseCommand } from '@core/base';
+import { Command, Option, Cooldown } from '@core/decorators';
+import { EconomyService } from '../services/EconomyService';
 
-// Then feature modules
-const economyModule = container.resolve(EconomyModule);
-await economyModule.initialize(client);
+@Command('transfer', 'Transfer money to another user')
+@Option({
+  name: 'user',
+  description: 'User to transfer to',
+  type: ApplicationCommandOptionTypes.USER,
+  required: true
+})
+@Option({
+  name: 'amount',
+  description: 'Amount to transfer',
+  type: ApplicationCommandOptionTypes.INTEGER,
+  required: true,
+  min_value: 1
+})
+@Cooldown(5000)
+export class TransferCommand extends BaseCommand {
+  constructor(
+    client: ExtendedClient,
+    @inject(EconomyService) private economyService: EconomyService
+  ) {
+    super(client);
+  }
 
-// Finally, dependent modules
-const shopModule = container.resolve(ShopModule); // Depends on Economy
-await shopModule.initialize(client);
+  async execute(interaction: CommandInteraction): Promise<void> {
+    const toUser = interaction.data.options.getUser('user', true);
+    const amount = interaction.data.options.getInteger('amount', true);
+
+    if (toUser.id === interaction.user.id) {
+      await interaction.createMessage({
+        content: '❌ You cannot transfer to yourself!',
+        flags: MessageFlags.EPHEMERAL
+      });
+      return;
+    }
+
+    if (toUser.bot) {
+      await interaction.createMessage({
+        content: '❌ You cannot transfer to bots!',
+        flags: MessageFlags.EPHEMERAL
+      });
+      return;
+    }
+
+    const success = await this.economyService.transfer(
+      interaction.user.id,
+      toUser.id,
+      amount
+    );
+
+    if (!success) {
+      await interaction.createMessage({
+        content: '❌ Insufficient balance!',
+        flags: MessageFlags.EPHEMERAL
+      });
+      return;
+    }
+
+    await interaction.createMessage({
+      content: `✅ Transferred $${amount.toLocaleString()} to ${toUser.mention}`
+    });
+  }
+}
+```
+
+### Message Reward Event
+
+```typescript
+// src/modules/economy/events/MessageReward.event.ts
+import { inject } from 'tsyringe';
+import { Message } from 'oceanic.js';
+import { BaseEvent } from '@core/base';
+import { Event } from '@core/decorators';
+import { EconomyService } from '../services/EconomyService';
+
+@Event('messageCreate')
+export class MessageRewardEvent extends BaseEvent {
+  private recentMessages = new Set<string>();
+
+  constructor(
+    client: ExtendedClient,
+    @inject(EconomyService) private economyService: EconomyService
+  ) {
+    super(client);
+  }
+
+  async execute(message: Message): Promise<void> {
+    if (message.author.bot) return;
+    if (!message.guildID) return;
+    if (message.content.length < 10) return;
+
+    // Prevent spam rewards (1 reward per minute per user)
+    const key = `${message.author.id}:${Date.now() / 60000 | 0}`;
+    if (this.recentMessages.has(key)) return;
+    this.recentMessages.add(key);
+
+    // Clean up old entries
+    setTimeout(() => this.recentMessages.delete(key), 60000);
+
+    // Award 1-5 coins per message
+    const reward = Math.floor(Math.random() * 5) + 1;
+    await this.economyService.addBalance(message.author.id, reward);
+  }
+}
+```
+
+### Economy Module
+
+```typescript
+// src/modules/economy/Economy.module.ts
+import { BaseModule } from '@core/base';
+import { ExtendedClient } from '@core/client';
+import { container } from 'tsyringe';
+
+import { EconomyService } from './services/EconomyService';
+import { BalanceCommand } from './commands/Balance.command';
+import { DailyCommand } from './commands/Daily.command';
+import { TransferCommand } from './commands/Transfer.command';
+import { MessageRewardEvent } from './events/MessageReward.event';
+
+export class EconomyModule extends BaseModule {
+  public name = 'EconomyModule';
+  public description = 'Virtual currency system';
+
+  async initialize(client: ExtendedClient): Promise<void> {
+    // Register service in DI container
+    container.register(EconomyService, { useClass: EconomyService });
+
+    // Register commands
+    await this.registerCommands([
+      BalanceCommand,
+      DailyCommand,
+      TransferCommand
+    ]);
+
+    // Register events
+    await this.registerEvents([
+      MessageRewardEvent
+    ]);
+
+    this.client.logger.info('Economy module initialized');
+  }
+
+  async shutdown(): Promise<void> {
+    this.client.logger.info('Economy module shut down');
+  }
+}
+```
+
+## Module Best Practices
+
+### 1. Single Responsibility
+
+Each module should handle one domain:
+
+```
+✅ Good:
+- EconomyModule (handles virtual currency)
+- ModerationModule (handles moderation)
+- LevelingModule (handles XP and levels)
+
+❌ Bad:
+- UtilityModule (too broad, handles everything)
+```
+
+### 2. Dependency Injection
+
+Use DI for services:
+
+```typescript
+// Good
+constructor(
+  client: ExtendedClient,
+  @inject(MyService) private service: MyService
+) {
+  super(client);
+}
+
+// Bad
+constructor(client: ExtendedClient) {
+  super(client);
+  this.service = new MyService(); // Hard to test
+}
+```
+
+### 3. Error Handling
+
+Handle errors gracefully:
+
+```typescript
+async initialize(client: ExtendedClient): Promise<void> {
+  try {
+    await this.registerCommands([...]);
+    this.client.logger.info('Module initialized');
+  } catch (error) {
+    this.client.logger.error('Module initialization failed:', error);
+    throw error;
+  }
+}
+```
+
+### 4. Clean Up Resources
+
+```typescript
+async shutdown(): Promise<void> {
+  // Close database connections
+  await this.database?.disconnect();
+
+  // Clear intervals/timeouts
+  if (this.interval) {
+    clearInterval(this.interval);
+  }
+
+  // Remove event listeners
+  this.emitter?.removeAllListeners();
+
+  this.client.logger.info('Module shut down cleanly');
+}
 ```
 
 ## Testing Modules
 
-Create tests for your modules:
-
 ```typescript
-// src/modules/utility/__tests__/utility.module.test.ts
-import { UtilityModule } from '../utility.module';
+// tests/modules/economy/Economy.module.test.ts
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { ExtendedClient } from '@core/client';
+import { EconomyModule } from '@modules/economy/Economy.module';
 
-describe('UtilityModule', () => {
-  let module: UtilityModule;
-  let mockClient: jest.Mocked<ExtendedClient>;
+describe('EconomyModule', () => {
+  let module: EconomyModule;
+  let client: ExtendedClient;
 
   beforeEach(() => {
-    mockClient = {
-      registerCommand: jest.fn(),
-      registerEvent: jest.fn(),
-      logger: {
-        info: jest.fn(),
-      },
-    } as any;
-
-    module = new UtilityModule(mockClient);
+    client = new ExtendedClient();
+    module = new EconomyModule(client);
   });
 
-  it('should initialize with correct name', () => {
-    expect(module.name).toBe('Utility');
+  it('should initialize successfully', async () => {
+    await expect(module.initialize(client)).resolves.not.toThrow();
   });
 
-  it('should register commands on initialize', async () => {
-    await module.initialize(mockClient);
-    expect(mockClient.registerCommand).toHaveBeenCalledTimes(3);
+  it('should register commands', async () => {
+    await module.initialize(client);
+    expect(client.commands.has('balance')).toBe(true);
+    expect(client.commands.has('daily')).toBe(true);
   });
 });
 ```
+
+---
+
+**Next:**
+- [Middleware Guide](./middleware.md)
+- [Database Integration](./database.md)
+- [Testing Guide](../testing.md)

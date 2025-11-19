@@ -1,20 +1,68 @@
-# Getting Started with BOTMINE
+# Getting Started
 
-This guide will help you set up and run the BOTMINE Discord bot on your system.
+This guide will walk you through setting up and running the Discord Bot Template v2.0 from scratch.
 
 ## Prerequisites
 
-- Node.js 18+ 
-- npm or yarn
-- A Discord application and bot token
+Before you begin, ensure you have the following installed:
+
+- **Node.js** 18.0 or higher ([Download](https://nodejs.org/))
+- **npm** 8.0 or higher (comes with Node.js)
+- **Git** ([Download](https://git-scm.com/))
+- **PostgreSQL** (optional, for database features) ([Download](https://www.postgresql.org/download/))
+- **Docker** (optional, for containerized deployment) ([Download](https://www.docker.com/))
+
+Check your installations:
+```bash
+node --version   # Should be v18.0.0 or higher
+npm --version    # Should be 8.0.0 or higher
+git --version    # Any recent version
+```
+
+## Discord Application Setup
+
+### 1. Create a Discord Application
+
+1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
+2. Click "New Application"
+3. Give your application a name and click "Create"
+
+### 2. Create a Bot User
+
+1. Navigate to the "Bot" section in the left sidebar
+2. Click "Add Bot" and confirm
+3. Under the bot's username, click "Reset Token" to reveal your bot token
+4. **Copy this token** - you'll need it for the `.env` file
+5. **Important**: Never share your bot token publicly!
+
+### 3. Configure Bot Settings
+
+In the "Bot" section:
+- Enable "Message Content Intent" if you plan to read message content
+- Enable "Server Members Intent" if you need access to member data
+- Enable "Presence Intent" if you need presence updates
+
+### 4. Get Application Credentials
+
+1. Go to the "General Information" section
+2. Copy the **Application ID** (this is your `CLIENT_ID`)
+3. Go to the "OAuth2" section
+4. Copy the **Client Secret** (this is your `CLIENT_SECRET`)
+
+### 5. Get Your User ID
+
+1. Open Discord and enable Developer Mode:
+   - User Settings → Advanced → Developer Mode
+2. Right-click your username and select "Copy User ID"
+3. This is your `OWNER_ID`
 
 ## Installation
 
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd BOTMINE
+git clone https://github.com/0xXrer/Discord-bot-Template.git
+cd Discord-bot-Template
 ```
 
 ### 2. Install Dependencies
@@ -23,164 +71,285 @@ cd BOTMINE
 npm install
 ```
 
-### 3. Environment Configuration
+This will install all required packages including:
+- oceanic.js (Discord API wrapper)
+- TypeScript
+- tsyringe (Dependency injection)
+- Prisma (Database ORM)
+- Winston (Logging)
+- And more...
 
-Copy the example environment file and configure it:
+## Configuration
+
+### 1. Create Environment File
+
+Copy the example environment file:
 
 ```bash
-cp exemple.env .env
+cp .env.example .env
 ```
 
-Edit `.env` with your bot credentials:
+### 2. Configure Environment Variables
+
+Open `.env` in your text editor and fill in your credentials:
 
 ```env
-# Discord Bot Configuration
+# Discord Bot Configuration (REQUIRED)
 BOT_TOKEN=your_bot_token_here
-CLIENT_ID=your_client_id_here
+CLIENT_ID=your_application_id_here
 CLIENT_SECRET=your_client_secret_here
-OWNER_ID=your_user_id_here
 
-# Environment
+# Bot Owner (RECOMMENDED)
+OWNER_ID=your_discord_user_id_here
+
+# Environment (OPTIONAL)
 NODE_ENV=development
+LOG_LEVEL=debug
 
-# Database (optional)
-DATABASE_URL=your_database_url_here
+# Database (OPTIONAL - only if using database features)
+DATABASE_URL=postgresql://user:password@localhost:5432/discord_bot
 
-# Logging
-LOG_LEVEL=info
+# Health Check Server (OPTIONAL)
+HEALTH_CHECK_PORT=3000
+HEALTH_CHECK_ENABLED=true
+
+# Metrics (OPTIONAL)
+METRICS_ENABLED=true
 ```
 
-### 4. Build the Project
+### Environment Variable Reference
+
+| Variable | Required | Description | Default |
+|----------|----------|-------------|---------|
+| `BOT_TOKEN` | Yes | Your Discord bot token | - |
+| `CLIENT_ID` | Yes | Your Discord application ID | - |
+| `CLIENT_SECRET` | Yes | Your Discord client secret | - |
+| `OWNER_ID` | Recommended | Your Discord user ID (for owner-only commands) | - |
+| `NODE_ENV` | No | Environment mode: `development` or `production` | `development` |
+| `LOG_LEVEL` | No | Logging level: `debug`, `info`, `warn`, `error` | `info` |
+| `DATABASE_URL` | No | PostgreSQL connection string | - |
+| `HEALTH_CHECK_PORT` | No | Port for health check server | `3000` |
+| `HEALTH_CHECK_ENABLED` | No | Enable health check endpoints | `true` |
+| `METRICS_ENABLED` | No | Enable Prometheus metrics | `true` |
+
+## Database Setup (Optional)
+
+If you want to use database features (like the warn system), set up PostgreSQL:
+
+### Option 1: Using Docker
+
+Start PostgreSQL using Docker Compose:
 
 ```bash
-npm run build
+docker-compose up -d postgres
 ```
 
-### 5. Start the Bot
+This starts PostgreSQL on `localhost:5432` with:
+- **Database**: `discord_bot`
+- **Username**: `postgres`
+- **Password**: `postgres`
 
-For production:
+### Option 2: Manual Installation
+
+1. Install PostgreSQL on your system
+2. Create a database:
+   ```bash
+   psql -U postgres
+   CREATE DATABASE discord_bot;
+   \q
+   ```
+3. Update `DATABASE_URL` in `.env` with your connection string
+
+### Run Migrations
+
+After PostgreSQL is running, initialize the database:
+
 ```bash
-npm start
+# Generate Prisma client
+npm run prisma:generate
+
+# Run migrations
+npm run prisma:migrate
+
+# (Optional) Open Prisma Studio to view data
+npm run prisma:studio
 ```
 
-For development with auto-reload:
+## Running the Bot
+
+### Development Mode
+
+For development with hot-reload (automatically restarts on file changes):
+
 ```bash
 npm run dev
 ```
 
-## Discord Bot Setup
-
-### 1. Create a Discord Application
-
-1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
-2. Click "New Application"
-3. Give your bot a name
-4. Go to the "Bot" section
-5. Click "Add Bot"
-6. Copy the bot token to your `.env` file
-
-### 2. Configure Bot Permissions
-
-In the Discord Developer Portal:
-1. Go to OAuth2 > URL Generator
-2. Select "bot" and "applications.commands" scopes
-3. Select necessary permissions:
-   - Send Messages
-   - Use Slash Commands
-   - Embed Links
-   - Read Message History
-
-### 3. Invite the Bot
-
-Use the generated URL to invite your bot to your server.
-
-## Development
-
-### Project Structure
-
+You should see output like:
 ```
-src/
-├── client/          # BotClient class and core functionality
-├── commands/        # Slash command implementations
-│   ├── BaseCommand.ts    # Base command class
-│   ├── Help.ts           # Help command
-│   ├── Ping.ts           # Ping command
-│   └── UserInfo.ts       # User info command
-├── events/          # Discord event handlers
-│   ├── BaseEvent.ts      # Base event class
-│   ├── Ready.ts          # Bot ready event
-│   ├── InteractionCreate.ts # Command interaction event
-│   └── Error.ts          # Error handling event
-├── handlers/        # Command and event management
-│   ├── CommandHandler.ts # Command loading and execution
-│   └── EventHandler.ts   # Event registration
-├── managers/        # Bot managers
-│   └── PermissionManager.ts # Permission system
-├── utils/           # Utility functions
-│   ├── Logger.ts         # Logging system
-│   └── FileUtils.ts      # File operations
-├── config/          # Configuration
-│   └── Config.ts         # Environment configuration
-└── init.ts          # Application entry point
+[2025-11-19 10:00:00] INFO: Starting Discord Bot...
+[2025-11-19 10:00:01] INFO: Loading modules...
+[2025-11-19 10:00:01] INFO: Module loaded: GeneralModule
+[2025-11-19 10:00:01] INFO: Module loaded: ModerationModule
+[2025-11-19 10:00:02] INFO: Bot is ready! Logged in as BotName#1234
+[2025-11-19 10:00:02] INFO: Serving 5 guilds with 1,234 users
+[2025-11-19 10:00:02] INFO: Health check server listening on port 3000
 ```
 
-### Available Scripts
+### Production Mode
 
-- `npm run build` - Compile TypeScript to JavaScript
-- `npm start` - Run the compiled bot
-- `npm run dev` - Run in development mode with ts-node
-- `npm run watch` - Watch for changes and recompile
+For production deployment:
 
-### Adding New Commands
+```bash
+# Build TypeScript to JavaScript
+npm run build
 
-1. Create a new file in `src/commands/`
-2. Extend the `BaseCommand` class
-3. Implement the `execute` method
-4. The command will be automatically loaded
+# Start the bot
+npm start
+```
 
-Example:
+Or use PM2 for process management:
 
-```typescript
-import { BaseCommand } from './BaseCommand';
-import { BotClient } from '../client/BotClient';
-import { CommandInteraction } from 'oceanic.js';
+```bash
+npm install -g pm2
+pm2 start dist/main.js --name discord-bot
+pm2 save
+pm2 startup
+```
 
-export default class MyCommand extends BaseCommand {
-    constructor(client: BotClient) {
-        super(client, {
-            name: 'mycommand',
-            description: 'My awesome command',
-            userInstallable: true
-        });
-    }
+## Inviting Your Bot
 
-    public async execute(interaction: CommandInteraction): Promise<void> {
-        await interaction.createMessage({
-            content: 'Hello from my command!'
-        });
-    }
+### 1. Generate Invite Link
+
+Use the Discord Developer Portal to generate an invite link:
+
+1. Go to your application in the [Developer Portal](https://discord.com/developers/applications)
+2. Navigate to "OAuth2" → "URL Generator"
+3. Select scopes:
+   - `bot`
+   - `applications.commands`
+4. Select bot permissions based on your needs:
+   - At minimum: `Send Messages`, `Embed Links`, `Use Slash Commands`
+   - For moderation: `Kick Members`, `Ban Members`, `Manage Messages`
+5. Copy the generated URL
+
+### 2. Invite to Test Server
+
+1. Paste the URL in your browser
+2. Select a server you own (for testing)
+3. Click "Authorize"
+
+### 3. Test Commands
+
+In Discord, type `/` to see your bot's commands:
+- `/ping` - Check if the bot is responding
+- `/help` - See all available commands
+- `/info` - View bot information
+
+## Verify Installation
+
+### Check Bot Status
+
+1. **Bot is online**: The bot should appear online in your Discord server
+2. **Commands registered**: Type `/` to see slash commands
+3. **Logs are working**: Check console output for log messages
+
+### Test Health Endpoint
+
+If health checks are enabled:
+
+```bash
+curl http://localhost:3000/health
+```
+
+Expected response:
+```json
+{
+  "status": "healthy",
+  "uptime": 123.456,
+  "timestamp": "2025-11-19T10:00:00.000Z"
 }
 ```
 
+### View Metrics
+
+```bash
+curl http://localhost:3000/metrics
+```
+
+This returns Prometheus-formatted metrics.
+
+## Next Steps
+
+Now that your bot is running, you can:
+
+1. **[Create Custom Commands](./guides/creating-commands.md)** - Add your own slash commands
+2. **[Handle Events](./guides/creating-events.md)** - Respond to Discord events
+3. **[Organize with Modules](./guides/creating-modules.md)** - Structure your bot's features
+4. **[Understand the Architecture](./architecture.md)** - Learn how the bot works internally
+5. **[Deploy to Production](./deployment.md)** - Take your bot live
+
 ## Troubleshooting
 
-### Common Issues
+### Bot won't start
 
-1. **Bot doesn't respond to commands**
-   - Check if the bot token is correct
-   - Ensure the bot has the necessary permissions
-   - Verify the command is registered globally
+**Error: Invalid token**
+- Double-check your `BOT_TOKEN` in `.env`
+- Make sure there are no extra spaces or quotes
+- Generate a new token in the Developer Portal if needed
 
-2. **TypeScript compilation errors**
-   - Run `npm run build` to see detailed error messages
-   - Check your TypeScript configuration in `tsconfig.json`
+**Error: Missing intents**
+- Enable required intents in the Discord Developer Portal under "Bot" section
+- Update intent configuration in `src/main.ts` if needed
 
-3. **Environment variables not loading**
-   - Ensure `.env` file is in the project root
-   - Check that all required variables are set
+### Commands not showing
 
-### Getting Help
+**Slash commands not appearing:**
+- Wait 1-2 minutes for Discord to register commands
+- Kick and re-invite the bot to refresh permissions
+- Check console for registration errors
 
-- Check the [API Reference](./api/README.md) for detailed documentation
-- See [Command Development Guide](./guides/command-development.md) for creating commands
-- Review the [Examples](./examples/README.md) for code samples
+### Database errors
+
+**Connection refused:**
+- Make sure PostgreSQL is running
+- Verify `DATABASE_URL` is correct
+- Check PostgreSQL logs for errors
+
+**Migration errors:**
+- Delete `prisma/migrations` folder
+- Run `npm run prisma:migrate` again
+- Or use `npx prisma migrate reset` to reset database
+
+### Still having issues?
+
+Check the **[Troubleshooting Guide](./troubleshooting.md)** or open an issue on [GitHub](https://github.com/0xXrer/Discord-bot-Template/issues).
+
+## Useful Commands
+
+```bash
+# Development
+npm run dev              # Start with hot-reload
+npm run build            # Compile TypeScript
+npm start                # Run production build
+
+# Database
+npm run prisma:generate  # Generate Prisma client
+npm run prisma:migrate   # Run database migrations
+npm run prisma:studio    # Open database GUI
+
+# Code Quality
+npm run lint             # Check code style
+npm run lint:fix         # Fix code style issues
+npm run format           # Format code with Prettier
+npm test                 # Run tests
+
+# Docker
+npm run docker:build     # Build Docker image
+npm run docker:up        # Start with Docker Compose
+npm run docker:down      # Stop Docker containers
+```
+
+---
+
+**Next**: [Architecture Overview](./architecture.md) →

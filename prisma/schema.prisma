@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Guild {
+  id        String   @id
+  prefix    String   @default("!")
+  settings  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  warnings Warning[]
+
+  @@map("guilds")
+}
+
+model User {
+  id          String   @id
+  permissions String[]
+  level       Int      @default(0)
+  experience  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  warnings Warning[]
+
+  @@map("users")
+}
+
+model Warning {
+  id        String   @id @default(cuid())
+  userId    String
+  guildId   String
+  reason    String
+  moderator String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([guildId])
+  @@map("warnings")
+}
+
+model CommandUsage {
+  id          String   @id @default(cuid())
+  commandName String
+  userId      String
+  guildId     String?
+  executedAt  DateTime @default(now())
+
+  @@index([commandName])
+  @@index([userId])
+  @@index([guildId])
+  @@map("command_usage")
+}

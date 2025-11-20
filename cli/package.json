@@ -1,7 +1,7 @@
 {
-  "name": "cli",
-  "version": "1.0.0",
-  "description": "",
+  "name": "create-discord-bot-oceanic",
+  "version": "2.0.0",
+  "description": "CLI to scaffold a modern Discord bot project with Oceanic.js, TypeScript, decorators, and dependency injection",
   "main": "dist/index.js",
   "bin": {
     "create-discord-bot": "./dist/index.js"
@@ -9,12 +9,40 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js",
+    "prepublishOnly": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "keywords": [
+    "discord",
+    "bot",
+    "oceanic",
+    "typescript",
+    "cli",
+    "generator",
+    "template",
+    "scaffold",
+    "decorators",
+    "dependency-injection",
+    "prisma",
+    "supabase",
+    "docker"
+  ],
+  "author": "0xXrer",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0xXrer/Discord-bot-Template.git",
+    "directory": "cli"
+  },
+  "bugs": {
+    "url": "https://github.com/0xXrer/Discord-bot-Template/issues"
+  },
+  "homepage": "https://github.com/0xXrer/Discord-bot-Template#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "chalk": "^5.6.2",
     "commander": "^14.0.2",
